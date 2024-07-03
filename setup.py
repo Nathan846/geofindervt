@@ -5,19 +5,20 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="geofinder_vt",  # Replace with your own package name
-    version="0.1.1",
+    version="0.2.6",
     author="Your Name",
     author_email="vaidhyanathan@vt.edu",
     description="A brief description of your package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nathan846/geofindervt",  # Replace with the URL of your project
-    packages=find_packages(),
+    packages=find_packages(include=["geofinder_vt", "geofinder_vt.*"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",  # Choose your license
         "Operating System :: OS Independent",
     ],
+    include_package_data=True,
     python_requires='>=3.10',
     install_requires=[
         'affine==2.4.0',
@@ -77,8 +78,6 @@ setup(
         'shapely==2.0.1',
         'six==1.16.0',
         'snuggs==1.4.7',
-        'tkcalendar==1.6.1',
-        'tkintermapview==1.29',
         'tqdm==4.65.0',
         'typing-extensions==4.6.0',
         'tzdata==2023.3',
