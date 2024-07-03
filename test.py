@@ -1,1 +1,2 @@
-import geofinder_vt-0.1.0
+from geofinder_vt import ImageExtractor
+

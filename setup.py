@@ -1,4 +1,8 @@
 from setuptools import setup, find_packages
+from pip.req import parse_requirements
+
+# parse_requirements() returns generator of pip.req.InstallRequirement objects
+install_reqs = parse_requirements('requirements.txt')
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
