@@ -1,0 +1,10 @@
+from gpsvideoextractor import gps_vidextractor
+output_path = "path/to/files"
+
+GVE = gps_vidextractor()
+extractor = GVE.VideoExtractor('path/to/video.mp4')
+GVE.path(output_path)
+#Extractor moves files to the output path, if the path doesn't exist, it will add to path
+frame = GVE.get_frame_by_location(latitude=34.0522, longitude=-118.2437)
+
+frame.save('output.jpg')
