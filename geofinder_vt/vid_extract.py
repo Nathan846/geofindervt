@@ -1,5 +1,5 @@
 import os
-from gpmf_support import extract_metadata
+from .gpmf_support import extract_metadata
 from moviepy.editor import VideoFileClip
 import datetime
 import numpy as np

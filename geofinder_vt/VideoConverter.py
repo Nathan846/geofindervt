@@ -1,5 +1,5 @@
 import os
-from vid_extract import extract_video
+from .vid_extract import extract_video
 
 class VideoConverter:
     def __init__(self, video_folder_prefix):
