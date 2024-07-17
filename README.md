@@ -1,6 +1,6 @@
-# UserInterface_ComputerVision_GoPro
+# GEOFINDER-VT
 
-This is collaboration with Dr. Junghwan Kim (Department of Geography@Virginia Tech) to create a user friendly desktop application that uses pre-trained Computer Vision models on geographical video files (captured by GoPro). The extracted metadata is saved in a CSV file. The tool consists of two main components: VideoConverter and ImageExtractor.
+This is collaboration with Dr. Junghwan Kim (Department of Geography@Virginia Tech) to create a user friendly Python API that uses geographical video files (captured by GoPro) to extract nearest gps location. The extracted metadata is saved in a CSV file and the image frame renamed with the tagged geolocation is available in the specified folder. 
 
 ## Installation
 To install this tool from PyPI, use the following command:
