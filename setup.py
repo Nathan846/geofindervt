@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="geofinder-vt",  # Replace with your own package name
-    version="0.2.18",
+    version="0.2.21",
     author="Your Name",
     author_email="vaidhyanathan@vt.edu",
     description="A brief description of your package",

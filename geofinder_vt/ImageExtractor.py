@@ -3,6 +3,8 @@ import shutil
 from datetime import datetime
 import pandas as pd
 from geopy.distance import geodesic
+import concurrent.futures
+import heapq
 
 class ImageExtractor:
     def __init__(self, input_csv, dir_prefix):
@@ -12,18 +14,17 @@ class ImageExtractor:
         self.base_path = "."
 
     def list_relevant_folders(self):
-        all_items = os.listdir(self.base_path)
-        folders = [item for item in all_items if os.path.isdir(os.path.join(self.base_path, item)) and item.startswith(self.dir_prefix)]
-        return folders
+        return [item for item in os.listdir(self.base_path) 
+                if os.path.isdir(os.path.join(self.base_path, item)) and item.startswith(self.dir_prefix)]
 
     def consolidate_files(self, folders):
-        all_files = []
-        for folder in folders:
-            full_folder_path = os.path.join(self.base_path, folder)
-            files = os.listdir(full_folder_path)
-            files = [f"{folder}/{file}" for file in files if 'metadata' not in file]
-            all_files.extend(files)
-        return all_files
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            all_files = list(executor.map(self._get_files_in_folder, folders))
+        return sum(all_files, [])
+
+    def _get_files_in_folder(self, folder):
+        full_folder_path = os.path.join(self.base_path, folder)
+        return [f"{folder}/{file}" for file in os.listdir(full_folder_path) if 'metadata' not in file]
 
     def prepare_dataframe(self, all_files):
         df = pd.DataFrame(all_files, columns=["filename"])
@@ -34,28 +35,32 @@ class ImageExtractor:
         return df
 
     def find_closest_coords(self, row, ref_df):
-        closest_distance = float('inf')
-        closest_file = None
+        min_heap = []
         for _, row_df in ref_df.iterrows():
-            distance = geodesic((float(row_df['latitude']), float(row_df['longitude'])), (float(row['lat']), float(row['lon']))).kilometers
-            if distance < 0.02 and distance < closest_distance:
-                closest_file = row_df['filename']
-                closest_distance = distance
-        return [closest_file]
+            distance = geodesic((float(row_df['latitude']), float(row_df['longitude'])), 
+                                (float(row['lat']), float(row['lon']))).kilometers
+            if distance < 0.02:
+                heapq.heappush(min_heap, (distance, row_df['filename']))
+        return [heapq.heappop(min_heap)[1]] if min_heap else [None]
 
     def process_files(self, ref_df):
-        self.df['closest_coords'] = self.df.apply(lambda row: self.find_closest_coords(row, ref_df), axis=1)
-        unique_files = set(sum(self.df['closest_coords'].tolist(), []))
-        return unique_files
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            print(self.df.itertuples,ref_df)
+            closest_coords = list(executor.map(lambda row: self.find_closest_coords(row, ref_df), self.df.itertuples()))
+        unique_files = set(sum(closest_coords, []))
+        return unique_files - {None}
 
     def move_files(self, unique_files):
         destination_path = f"results_{datetime.now().timestamp()}"
         os.mkdir(destination_path)
-        for file in unique_files:
-            if file:
-                shutil.copy(file, destination_path)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            list(executor.map(lambda file: shutil.copy(file, destination_path), unique_files))
         return destination_path
-
+    
+    def individual_coords(self, input_tuple, ref_df):
+        row = {'lat':input_tuple['Latitude'],'lon':input_tuple['Longitude']}
+        closest_coords = self.find_closest_coords(row, ref_df), self.df.itertuples()
+        print()
     def run(self):
         folders = self.list_relevant_folders()
         all_files = self.consolidate_files(folders)
@@ -64,11 +69,3 @@ class ImageExtractor:
         destination = self.move_files(unique_files)
         self.df.to_csv('prelim_output.csv')
         return destination
-
-# Example usage
-if __name__ == "__main__":
-    input_csv = "example.csv"  # Path to your CSV file containing geolocation data
-    directory_prefix = "GH"  # Directory prefix to filter relevant folders
-    extractor = ImageExtractor(input_csv, directory_prefix)
-    destination_path = extractor.run()
-    print(f"Processed files moved to: {destination_path}")
