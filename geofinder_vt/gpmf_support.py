@@ -1,7 +1,6 @@
 """
 Module Name: GoPro GPS Extract Using GPMF and Output to CSV
-Author: Rifat Sabbir Mansur
-Date: May 27, 2023
+Author: Vaidhyanathan Chandramouli
 Description: This script extracts GPS data from a GoPro 360 video file and writes it to an CSV file.
     The script first converts the GPS data to GPX format, then to XML format, and finally to CSV format.
     Both 360 and MP4 files are supported.
@@ -56,9 +55,7 @@ def extract_metadata(video_file=VIDEO_FILE, output_dir=None, frames_after_number
     except FileNotFoundError:
         raise 'file not found'
         return
-    # Extract GPS low level data from the stream
     gps_blocks = gpmf.gps.extract_gps_blocks(stream)
-    # Parse low level data into more usable format
     gps_data = list(map(gpmf.gps.parse_gps_block, gps_blocks))
 
     # logging.debug(f"Found {len(gps_data)} GPS data points in the video file: {gps_data}")
@@ -79,12 +76,9 @@ def extract_metadata(video_file=VIDEO_FILE, output_dir=None, frames_after_number
 
     HEADERS = ['time', 'latitude', 'longitude' ,'altitude', 'sym', 'fix', 'precision', 'speed_2d', 'speed_3d']
 
-    # Creating a list of rows to be written in CSV
     rows = []
-    # Creating a list where each element is in 'timestamp_lat_lon' format
     metadata_list = []
 
-    # Opening CSV file for writing
     csv_file_path = os.path.join(output_dir, "metadata.csv")
     with open(csv_file_path, 'a', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=HEADERS)
@@ -95,13 +89,10 @@ def extract_metadata(video_file=VIDEO_FILE, output_dir=None, frames_after_number
 
         for row in metadata_dict:
             try:
-                # Convert string to datetime object
                 datetime_obj = datetime.datetime.strptime(row['time'], "%Y-%m-%dT%H:%M:%S.%fZ")
             except ValueError:
-                # Convert string to datetime object
                 datetime_obj = datetime.datetime.strptime(row['time'], "%Y-%m-%dT%H:%M:%SZ")
 
-            # Convert datetime object to Unix timestamp
             unix_timestamp = int(datetime_obj.timestamp()) 
 
             # Skip if the difference between the current and previous timestamp is less than the saving rate
@@ -113,7 +104,6 @@ def extract_metadata(video_file=VIDEO_FILE, output_dir=None, frames_after_number
             # else:
             #     previous_timestamp = unix_timestamp
 
-            # Append the timestamp, latitude, and longitude in the metadata_list
             metadata_list.append(f"{unix_timestamp}_{row['@lat']}_{row['@lon']}")
 
             rows.append({
